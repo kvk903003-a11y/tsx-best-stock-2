@@ -15,23 +15,29 @@ for ticker in stocks:
     if df.empty:
         continue
 
-    df["EMA20"] = ta.trend.ema_indicator(df["Close"], window=20)
-    df["RSI"] = ta.momentum.rsi(df["Close"], window=14)
+    # 🔥 FIX MULTIINDEX ISSUE
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+
+    close = df["Close"]
+
+    df["EMA20"] = ta.trend.ema_indicator(close=close, window=20)
+    df["RSI"] = ta.momentum.rsi(close=close, window=14)
 
     last = df.iloc[-1]
 
     score = 0
-    
+
     if last["Close"] > last["EMA20"]:
         score += 1
-        
+
     if last["RSI"] > 50:
         score += 1
 
     results.append({
         "Stock": ticker,
-        "Price": round(last["Close"], 2),
-        "RSI": round(last["RSI"], 2),
+        "Price": round(float(last["Close"]), 2),
+        "RSI": round(float(last["RSI"]), 2),
         "Score": score
     })
 
